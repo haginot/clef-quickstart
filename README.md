@@ -31,6 +31,30 @@ python clef_quickstart.py examples/incident.json
 
 大きいモデルを試す場合は、入力 JSON の `model` を `clef` に変更します。GPU 以外での実行は公式の検証対象外です。`--device cpu` も指定できますが、BF16 の対応状況、メモリ、実行時間に注意してください。
 
+## OpenRouter で試す
+
+ローカル GPU がない場合は、OpenRouter の SystemOne 互換エンドポイントからも呼び出せます。
+
+```bash
+export OPENROUTER_API_KEY="..."
+
+curl https://openrouter.ai/api/v1/systemone \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "cloudflare/clef-flash",
+    "state": {"message": "Checkout is failing for every customer."},
+    "questions": {
+      "outage": {
+        "type": "noul",
+        "instructions": "Is a service outage likely?"
+      }
+    }
+  }'
+```
+
+API キーはリポジトリに保存せず、環境変数や OS のキーチェーンで管理してください。
+
 ## 入力形式
 
 ```json
@@ -76,6 +100,25 @@ python clef_quickstart.py examples/incident.json
 pip install -r requirements-dev.txt
 pytest
 ruff check .
+```
+
+## 7 ベンチマークでの比較
+
+Jev の検証で使った 7 タスクと同じ条件で、OpenRouter 上の `cloudflare/clef` と
+`cloudflare/clef-flash` を各 3,800 件評価しました。
+
+- [実験条件](experiments/2026-10-06-clef-vs-jev/run.md)
+- [3 モデル比較](experiments/results/comparison.md)
+- [Clef の詳細結果](experiments/results/clef.md)
+- [Clef-Flash の詳細結果](experiments/results/clef-flash.md)
+
+再実行には次の追加依存関係を使います。中断時は保存済みの JSONL から再開します。
+
+```bash
+uv run --with-requirements requirements-experiments.txt \
+  python experiments/run_benchmark.py \
+  --model cloudflare/clef-flash \
+  --jev-archive /path/to/jev_bench_predictions_2026-09-21.tar.gz
 ```
 
 ## 調査メモ
