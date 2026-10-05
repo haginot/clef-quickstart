@@ -1,0 +1,6 @@
+# Versions used for the official Clef release validation.
+torch==2.11.0
+transformers==5.10.2
+huggingface-hub>=0.34,<2
+safetensors>=0.5,<1
+pillow>=11,<13
